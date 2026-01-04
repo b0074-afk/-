@@ -711,7 +711,43 @@ const Dashboard = {
 };
 
 // ============================================
-// 7. Mobile Menu Toggle
+// 7. Feature Card Click Handler
+// ============================================
+function initFeatureCards() {
+  document.querySelectorAll('.feature-card.clickable-card, .clickable-card').forEach(card => {
+    card.addEventListener('click', (e) => {
+      e.preventDefault();
+      const target = card.dataset.target;
+      
+      if (target) {
+        const targetElement = document.querySelector(target);
+        if (targetElement) {
+          targetElement.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+          
+          // Add a visual highlight
+          targetElement.style.animation = 'highlight 1s ease-out';
+          setTimeout(() => {
+            targetElement.style.animation = '';
+          }, 1000);
+        }
+      }
+    });
+    
+    // Add keyboard accessibility
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        card.click();
+      }
+    });
+  });
+}
+
+// ============================================
+// 8. Mobile Menu Toggle
 // ============================================
 function initMobileMenu() {
   const navbarToggle = document.querySelector('.navbar-toggle');
@@ -731,7 +767,7 @@ function initSmoothScroll() {
   document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
       const href = this.getAttribute('href');
-      if (href === '#') return;
+      if (href === '#' || href === '#home') return;
       
       e.preventDefault();
       const target = document.querySelector(href);
@@ -740,6 +776,12 @@ function initSmoothScroll() {
           behavior: 'smooth',
           block: 'start'
         });
+        
+        // Close mobile menu if open
+        const navbarMenu = document.querySelector('.navbar-menu');
+        if (navbarMenu) {
+          navbarMenu.classList.remove('active');
+        }
       }
     });
   });
@@ -785,6 +827,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Initialize UI features
+  initFeatureCards(); // ← NEW: Initialize clickable cards
   initMobileMenu();
   initSmoothScroll();
   initScrollAnimations();
