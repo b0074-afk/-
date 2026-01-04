@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="골드런 승마랜드 대시보드 - 회원, 학생, 코치, 관리자">
+    <title>📊 대시보드 | 골드런 승마랜드</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐴</text></svg>">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    
+    <style>
+        /* Dashboard 전용 스타일 */
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background: var(--gray-200);
+            border-radius: var(--radius-full);
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            transition: width 0.3s ease;
+        }
+        
+        .progress-item {
+            margin-bottom: 1rem;
+        }
+        
+        .progress-item span {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 0.25rem;
+        }
+        
+        .booking-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .booking-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: var(--gray-50);
+            border-radius: var(--radius-md);
+            transition: all var(--transition-fast);
+        }
+        
+        .booking-item:hover {
+            background: var(--gray-100);
+            transform: translateX(4px);
+        }
+        
+        .booking-date {
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 0.25rem;
+        }
+        
+        .booking-horse {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+        }
+        
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: var(--radius-full);
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: white;
+        }
+        
+        .schedule-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .schedule-item {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--gray-50);
+            border-radius: var(--radius-md);
+            align-items: center;
+        }
+        
+        .schedule-item.completed {
+            opacity: 0.6;
+        }
+        
+        .schedule-item .time {
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .schedule-item .student {
+            color: var(--gray-700);
+        }
+        
+        .horse-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .horse-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: var(--gray-50);
+            border-radius: var(--radius-md);
+        }
+        
+        .horse-name {
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+        
+        .class-info {
+            background: var(--gray-50);
+            padding: 1.5rem;
+            border-radius: var(--radius-md);
+            margin-top: 1rem;
+        }
+        
+        .class-info p {
+            margin-bottom: 0.75rem;
+            color: var(--gray-700);
+        }
+        
+        .alert-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+        
+        .alert-item {
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            border-left: 4px solid;
+        }
+        
+        .alert-item.warning {
+            background: rgba(245, 158, 11, 0.1);
+            border-color: var(--warning);
+            color: var(--warning);
+        }
+        
+        .alert-item.info {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: var(--info);
+            color: var(--info);
+        }
+    </style>
+</head>
+<body>
+    <!-- ========================================
+         헤더
+    ======================================== -->
+    <header class="header">
+        <div class="header-container">
+            <a href="index.html" class="logo">
+                🐴 골드런 승마랜드
+            </a>
+            
+            <nav>
+                <ul class="nav-menu">
+                    <li><a href="index.html" class="nav-link">홈으로</a></li>
+                    <li><a href="index.html#booking" class="nav-link">예약하기</a></li>
+                    <li><a href="dashboard.html" class="nav-link active">대시보드</a></li>
+                </ul>
+                
+                <!-- Mobile Menu Toggle -->
+                <div class="menu-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- ========================================
+         대시보드 메인
+    ======================================== -->
+    <main class="dashboard">
+        <div class="container">
+            <!-- 대시보드 헤더 -->
+            <div class="dashboard-header">
+                <h1 class="dashboard-title">📊 대시보드</h1>
+                <p style="color: var(--gray-600); margin-top: 0.5rem;">
+                    원하는 역할을 선택하여 해당 대시보드를 확인하세요
+                </p>
+                
+                <!-- 역할 선택 -->
+                <div class="role-selector">
+                    <button class="role-button active" data-role="member">
+                        👤 일반 회원
+                    </button>
+                    <button class="role-button" data-role="student">
+                        🎓 학생/학부모
+                    </button>
+                    <button class="role-button" data-role="coach">
+                        👨‍🏫 코치/직원
+                    </button>
+                    <button class="role-button" data-role="admin">
+                        🔧 관리자
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 대시보드 콘텐츠 (동적 로드) -->
+            <div id="dashboardContent" class="dashboard-grid">
+                <!-- 일반 회원 대시보드 (기본) -->
+                <div class="stat-card">
+                    <div class="stat-label">이번 달 출석</div>
+                    <div class="stat-value">8회</div>
+                    <div class="stat-change positive">+2 지난달 대비</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-label">출석률</div>
+                    <div class="stat-value">85%</div>
+                    <div class="stat-change positive">+5%</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-label">다음 예약</div>
+                    <div class="stat-value">2일 후</div>
+                    <div class="stat-change">2026-01-06 14:00</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-label">총 이용 횟수</div>
+                    <div class="stat-value">47회</div>
+                    <div class="stat-change">회원 가입 후</div>
+                </div>
+                
+                <!-- 내 예약 내역 -->
+                <div class="card" style="grid-column: span 2;">
+                    <h3>📅 내 예약 내역</h3>
+                    <div class="booking-list" style="margin-top: 1.5rem;">
+                        <div class="booking-item">
+                            <div>
+                                <div class="booking-date">2026-01-06 (월) 14:00</div>
+                                <div class="booking-horse">말: 골드런 | 코치: 김코치</div>
+                            </div>
+                            <span class="badge bg-success">확정</span>
+                        </div>
+                        
+                        <div class="booking-item">
+                            <div>
+                                <div class="booking-date">2026-01-03 (금) 10:00</div>
+                                <div class="booking-horse">말: 썬더 | 코치: 이코치</div>
+                            </div>
+                            <span class="badge bg-gray">완료</span>
+                        </div>
+                        
+                        <div class="booking-item">
+                            <div>
+                                <div class="booking-date">2025-12-28 (토) 15:00</div>
+                                <div class="booking-horse">말: 다이아 | 코치: 김코치</div>
+                            </div>
+                            <span class="badge bg-gray">완료</span>
+                        </div>
+                    </div>
+                    
+                    <a href="index.html#booking" class="btn btn-primary mt-4 w-100">
+                        📅 새 예약하기
+                    </a>
+                </div>
+                
+                <!-- 출석 QR 코드 -->
+                <div class="card qr-container" style="grid-column: span 2;">
+                    <h3>📱 출석 QR 코드</h3>
+                    <p style="color: var(--gray-600); margin-bottom: 1.5rem;">
+                        수업 시작 전 코치에게 QR 코드를 스캔해주세요
+                    </p>
+                    <div class="qr-code">
+                        <svg width="200" height="200" viewBox="0 0 200 200" style="background: white;">
+                            <!-- QR 코드 패턴 (시각적 표현) -->
+                            <rect x="0" y="0" width="60" height="60" fill="#000"/>
+                            <rect x="10" y="10" width="40" height="40" fill="#fff"/>
+                            <rect x="20" y="20" width="20" height="20" fill="#000"/>
+                            
+                            <rect x="140" y="0" width="60" height="60" fill="#000"/>
+                            <rect x="150" y="10" width="40" height="40" fill="#fff"/>
+                            <rect x="160" y="20" width="20" height="20" fill="#000"/>
+                            
+                            <rect x="0" y="140" width="60" height="60" fill="#000"/>
+                            <rect x="10" y="150" width="40" height="40" fill="#fff"/>
+                            <rect x="20" y="160" width="20" height="20" fill="#000"/>
+                            
+                            <!-- 중앙 패턴 -->
+                            <rect x="80" y="30" width="10" height="10" fill="#000"/>
+                            <rect x="100" y="30" width="10" height="10" fill="#000"/>
+                            <rect x="90" y="50" width="20" height="10" fill="#000"/>
+                            <rect x="70" y="70" width="60" height="10" fill="#000"/>
+                            <rect x="80" y="90" width="10" height="10" fill="#000"/>
+                            <rect x="110" y="90" width="10" height="10" fill="#000"/>
+                            <rect x="70" y="110" width="20" height="10" fill="#000"/>
+                            <rect x="110" y="110" width="20" height="10" fill="#000"/>
+                        </svg>
+                    </div>
+                    <p style="margin-top: 1rem; color: var(--gray-600); font-size: 0.875rem;">
+                        회원 ID: MEMBER-2024-0847
+                    </p>
+                </div>
+                
+                <!-- 승마 일지 -->
+                <div class="card" style="grid-column: span 2;">
+                    <h3>📝 최근 승마 일지</h3>
+                    <div style="margin-top: 1.5rem;">
+                        <div style="padding: 1rem; background: var(--gray-50); border-radius: var(--radius-md); margin-bottom: 1rem;">
+                            <div style="font-weight: 700; margin-bottom: 0.5rem;">2026-01-03 | 김코치</div>
+                            <p style="font-size: 0.875rem; color: var(--gray-600); margin: 0;">
+                                오늘은 평보에서 속보로의 전환 연습을 했습니다. 
+                                자세가 많이 안정되었고, 말과의 호흡도 잘 맞았습니다. 
+                                다음 주에는 장애물 연습을 시작해볼게요! 👍
+                            </p>
+                        </div>
+                        
+                        <div style="padding: 1rem; background: var(--gray-50); border-radius: var(--radius-md);">
+                            <div style="font-weight: 700; margin-bottom: 0.5rem;">2025-12-28 | 이코치</div>
+                            <p style="font-size: 0.875rem; color: var(--gray-600); margin: 0;">
+                                기초 자세 교정 수업이었습니다. 
+                                등자 길이를 조정하니 더 편안하게 탈 수 있었어요. 
+                                꾸준히 연습하면 실력이 많이 늘 것 같습니다!
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 이용 통계 -->
+                <div class="card" style="grid-column: span 2;">
+                    <h3>📊 월별 이용 통계</h3>
+                    <div style="margin-top: 1.5rem;">
+                        <canvas id="usageChart" style="max-height: 200px;"></canvas>
+                        <!-- 실제로는 Chart.js 등 차트 라이브러리 사용 -->
+                        <div style="text-align: center; padding: 3rem; color: var(--gray-500);">
+                            <div style="font-size: 3rem;">📈</div>
+                            <div style="margin-top: 1rem;">차트는 Chart.js 라이브러리 연동 후 표시됩니다</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ========================================
+         푸터
+    ======================================== -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom" style="text-align: center; padding: 2rem 0;">
+                <p>
+                    &copy; 2026 골드런 승마랜드. All rights reserved.<br>
+                    <a href="index.html" style="color: var(--gray-400);">메인 페이지로 돌아가기</a>
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ========================================
+         JavaScript
+    ======================================== -->
+    <script src="js/main.js"></script>
+    
+    <script>
+        // 대시보드 초기화
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('📊 대시보드 로드 완료');
+            
+            // 역할 버튼이 이미 이벤트 리스너를 가지고 있음 (main.js)
+            // 추가적인 대시보드 전용 기능이 필요하면 여기에 작성
+        });
+    </script>
+</body>
+</html>
