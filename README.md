@@ -477,3 +477,51 @@ MIT License - 자유롭게 사용, 수정, 배포 가능
 ---
 
 *Last Updated: 2026-01-04*
+
+---
+
+## 🌐 라이브 데모
+
+웹사이트를 직접 체험해보세요!
+
+- **메인 페이지**: [index.html](./index.html)
+- **대시보드**: [dashboard.html](./dashboard.html)
+
+### 빠른 시작
+
+```bash
+# HTTP 서버 실행 (Python)
+python -m http.server 8000
+
+# 또는 Node.js
+npx serve
+
+# 브라우저에서 접속
+open http://localhost:8000
+```
+
+---
+
+## 🤝 기여하기
+
+프로젝트 개선에 참여해주세요!
+
+1. Fork this repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'feat: Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+---
+
+## 📜 변경 이력
+
+### v1.0.0 (2026-01-04)
+- ✨ 초기 릴리스
+- 🏠 메인 페이지 구현
+- 📊 4가지 역할별 대시보드
+- 🎨 iOS 스타일 디자인 시스템
+- 📱 완전 반응형 레이아웃
+- 🔔 노쇼 방지 시스템
+- ⚡ 긴급 슬롯 알림
+- 🎓 호스피아 연동 준비

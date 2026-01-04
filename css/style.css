@@ -1,1106 +1,1159 @@
-/* 
- * 골드런 승마랜드 - 메인 스타일시트
- * iOS 스타일 디자인 시스템
- * Author: Claude AI
- * Last Updated: 2026-01-04
- */
+/* ============================================
+   골드런 승마랜드 - 메인 스타일시트
+   iOS 카드 스타일 디자인
+   ============================================ */
 
-/* ========================================
-   1. 폰트 & 리셋
-======================================== */
-
-@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+/* ============================================
+   1. CSS Variables (Design Tokens)
+   ============================================ */
+:root {
+  /* Primary Colors */
+  --primary: #FF6B35;
+  --primary-dark: #E85D2C;
+  --primary-light: #FF8A5B;
+  
+  /* Secondary Colors */
+  --secondary: #4ECDC4;
+  --secondary-dark: #3DB8AF;
+  --accent: #FFD93D;
+  
+  /* Neutral Colors */
+  --white: #FFFFFF;
+  --gray-50: #F9FAFB;
+  --gray-100: #F3F4F6;
+  --gray-200: #E5E7EB;
+  --gray-300: #D1D5DB;
+  --gray-400: #9CA3AF;
+  --gray-500: #6B7280;
+  --gray-600: #4B5563;
+  --gray-700: #374151;
+  --gray-800: #1F2937;
+  --gray-900: #111827;
+  
+  /* Status Colors */
+  --success: #10B981;
+  --warning: #F59E0B;
+  --error: #EF4444;
+  --info: #3B82F6;
+  
+  /* Gradients */
+  --gradient-warm: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);
+  --gradient-cool: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);
+  --gradient-sunset: linear-gradient(135deg, #FF6B35 0%, #FF8E53 50%, #F7931E 100%);
+  --gradient-card: linear-gradient(145deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%);
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-card: 0 10px 30px rgba(0, 0, 0, 0.15);
+  
+  /* Border Radius */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --radius-full: 9999px;
+  
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  
+  /* Typography */
+  --font-sans: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-:root {
-    /* Primary Colors - iOS 스타일 그라데이션 */
-    --primary: #FF6B35;
-    --primary-dark: #E85D2C;
-    --primary-light: #FF8A5B;
-    
-    /* Secondary Colors */
-    --secondary: #4ECDC4;
-    --accent: #FFD93D;
-    
-    /* Neutral Palette */
-    --gray-50: #F9FAFB;
-    --gray-100: #F3F4F6;
-    --gray-200: #E5E7EB;
-    --gray-300: #D1D5DB;
-    --gray-400: #9CA3AF;
-    --gray-500: #6B7280;
-    --gray-600: #4B5563;
-    --gray-700: #374151;
-    --gray-800: #1F2937;
-    --gray-900: #111827;
-    
-    /* Status Colors */
-    --success: #10B981;
-    --warning: #F59E0B;
-    --error: #EF4444;
-    --info: #3B82F6;
-    
-    /* Background Gradients */
-    --bg-gradient-warm: linear-gradient(135deg, #FF6B35 0%, #FFD93D 100%);
-    --bg-gradient-cool: linear-gradient(135deg, #4ECDC4 0%, #3B82F6 100%);
-    --bg-gradient-dark: linear-gradient(135deg, #1F2937 0%, #374151 100%);
-    
-    /* Card Shadows - iOS 스타일 */
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-    --shadow-card: 0 10px 20px rgba(0, 0, 0, 0.08);
-    
-    /* Border Radius - iOS 스타일 둥근 모서리 */
-    --radius-sm: 8px;
-    --radius-md: 16px;
-    --radius-lg: 24px;
-    --radius-xl: 32px;
-    --radius-full: 9999px;
-    
-    /* Spacing */
-    --spacing-xs: 4px;
-    --spacing-sm: 8px;
-    --spacing-md: 16px;
-    --spacing-lg: 24px;
-    --spacing-xl: 32px;
-    --spacing-2xl: 48px;
-    --spacing-3xl: 64px;
-    
-    /* Typography */
-    --font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-    --font-size-xs: 0.75rem;   /* 12px */
-    --font-size-sm: 0.875rem;  /* 14px */
-    --font-size-base: 1rem;    /* 16px */
-    --font-size-lg: 1.125rem;  /* 18px */
-    --font-size-xl: 1.25rem;   /* 20px */
-    --font-size-2xl: 1.5rem;   /* 24px */
-    --font-size-3xl: 2rem;     /* 32px */
-    --font-size-4xl: 2.5rem;   /* 40px */
-    
-    /* Transitions */
-    --transition-fast: 150ms ease;
-    --transition-base: 250ms ease;
-    --transition-slow: 350ms ease;
+/* ============================================
+   2. Reset & Base Styles
+   ============================================ */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 html {
-    scroll-behavior: smooth;
-    font-size: 16px;
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-    font-family: var(--font-family);
-    font-size: var(--font-size-base);
-    line-height: 1.6;
-    color: var(--gray-900);
-    background: var(--gray-50);
-    overflow-x: hidden;
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--gray-900);
+  background: linear-gradient(to bottom, #FFE5D9 0%, #FFF5F0 50%, #FFFFFF 100%);
+  min-height: 100vh;
 }
 
-/* ========================================
-   2. 타이포그래피
-======================================== */
-
+/* ============================================
+   3. Typography
+   ============================================ */
 h1, h2, h3, h4, h5, h6 {
-    font-weight: 700;
-    line-height: 1.2;
-    margin-bottom: var(--spacing-md);
-    color: var(--gray-900);
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: var(--space-4);
 }
 
-h1 {
-    font-size: var(--font-size-4xl);
-    letter-spacing: -0.02em;
-}
-
-h2 {
-    font-size: var(--font-size-3xl);
-    letter-spacing: -0.01em;
-}
-
-h3 {
-    font-size: var(--font-size-2xl);
-}
-
-h4 {
-    font-size: var(--font-size-xl);
-}
+h1 { font-size: 2.5rem; }
+h2 { font-size: 2rem; }
+h3 { font-size: 1.5rem; }
+h4 { font-size: 1.25rem; }
+h5 { font-size: 1.125rem; }
+h6 { font-size: 1rem; }
 
 p {
-    margin-bottom: var(--spacing-md);
-    color: var(--gray-700);
+  margin-bottom: var(--space-4);
 }
 
 a {
-    color: var(--primary);
-    text-decoration: none;
-    transition: color var(--transition-fast);
+  color: var(--primary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
 }
 
 a:hover {
-    color: var(--primary-dark);
+  color: var(--primary-dark);
 }
 
-/* ========================================
-   3. iOS 스타일 카드 컴포넌트
-======================================== */
+/* ============================================
+   4. Container & Layout
+   ============================================ */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--space-6);
+}
 
+.section {
+  padding: var(--space-16) 0;
+}
+
+.grid {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.grid-2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.grid-3 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.grid-4 { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+
+/* ============================================
+   5. iOS-Style Card Component
+   ============================================ */
 .card {
-    background: white;
-    border-radius: var(--radius-lg);
-    padding: var(--spacing-lg);
-    box-shadow: var(--shadow-card);
-    transition: all var(--transition-base);
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-card);
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+  border: 1px solid rgba(255, 255, 255, 0.5);
 }
 
 .card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-xl);
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
 }
 
 .card-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: var(--radius-md);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: var(--font-size-3xl);
-    margin-bottom: var(--spacing-md);
-    background: var(--bg-gradient-warm);
+  font-size: 3rem;
+  margin-bottom: var(--space-4);
+  display: block;
 }
 
 .card-title {
-    font-size: var(--font-size-xl);
-    font-weight: 700;
-    margin-bottom: var(--spacing-sm);
-    color: var(--gray-900);
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: var(--space-3);
+  color: var(--gray-900);
 }
 
 .card-description {
-    font-size: var(--font-size-sm);
-    color: var(--gray-600);
-    line-height: 1.5;
+  font-size: 0.95rem;
+  color: var(--gray-600);
+  line-height: 1.6;
 }
 
-/* ========================================
-   4. 헤더 & 네비게이션
-======================================== */
-
-.header {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 1000;
-    border-bottom: 1px solid var(--gray-200);
-    box-shadow: var(--shadow-sm);
+/* Card Variants */
+.card-primary {
+  background: var(--gradient-warm);
+  color: white;
 }
 
-.header-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: var(--spacing-md) var(--spacing-lg);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+.card-primary .card-title,
+.card-primary .card-description {
+  color: white;
 }
 
-.logo {
-    font-size: var(--font-size-2xl);
-    font-weight: 800;
-    color: var(--primary);
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-sm);
+.card-secondary {
+  background: var(--gradient-cool);
+  color: white;
 }
 
-.nav-menu {
-    display: flex;
-    gap: var(--spacing-xl);
-    list-style: none;
+.card-secondary .card-title,
+.card-secondary .card-description {
+  color: white;
 }
 
-.nav-link {
-    font-size: var(--font-size-base);
-    font-weight: 600;
-    color: var(--gray-700);
-    padding: var(--spacing-sm) var(--spacing-md);
-    border-radius: var(--radius-sm);
-    transition: all var(--transition-fast);
+/* ============================================
+   6. Navigation
+   ============================================ */
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-sm);
 }
 
-.nav-link:hover {
-    background: var(--gray-100);
-    color: var(--primary);
+.navbar-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-4) var(--space-6);
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-.nav-link.active {
-    background: var(--primary);
-    color: white;
+.navbar-logo {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
 }
 
-/* Mobile Menu Toggle */
-.menu-toggle {
-    display: none;
-    flex-direction: column;
-    gap: 4px;
-    cursor: pointer;
-    padding: var(--spacing-sm);
+.navbar-menu {
+  display: flex;
+  list-style: none;
+  gap: var(--space-6);
+  align-items: center;
 }
 
-.menu-toggle span {
-    width: 24px;
-    height: 3px;
-    background: var(--gray-900);
-    border-radius: var(--radius-full);
-    transition: all var(--transition-base);
+.navbar-item a {
+  color: var(--gray-700);
+  font-weight: 500;
+  transition: color var(--transition-fast);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
 }
 
-/* ========================================
-   5. 히어로 섹션
-======================================== */
+.navbar-item a:hover {
+  color: var(--primary);
+  background: var(--gray-50);
+}
 
+.navbar-toggle {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--gray-700);
+}
+
+/* ============================================
+   7. Hero Section
+   ============================================ */
 .hero {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--bg-gradient-warm);
-    position: relative;
-    overflow: hidden;
-    padding-top: 80px;
+  position: relative;
+  min-height: 600px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: var(--gradient-sunset);
+  overflow: hidden;
+  border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+  margin-bottom: var(--space-12);
 }
 
 .hero::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600"><rect fill="none"/></svg>');
-    opacity: 0.1;
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600"><path fill="rgba(255,255,255,0.1)" d="M0,300 Q300,200 600,300 T1200,300 L1200,600 L0,600 Z"/></svg>') no-repeat bottom;
+  background-size: cover;
+  pointer-events: none;
 }
 
 .hero-content {
-    max-width: 800px;
-    text-align: center;
-    color: white;
-    z-index: 10;
-    padding: var(--spacing-xl);
+  position: relative;
+  z-index: 1;
+  max-width: 800px;
+  padding: var(--space-8);
+  color: white;
 }
 
 .hero-title {
-    font-size: clamp(2rem, 5vw, 4rem);
-    font-weight: 900;
-    margin-bottom: var(--spacing-lg);
-    color: white;
-    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-    line-height: 1.1;
+  font-size: 3.5rem;
+  font-weight: 800;
+  margin-bottom: var(--space-4);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  animation: fadeInUp 0.8s ease-out;
 }
 
 .hero-subtitle {
-    font-size: clamp(1rem, 2vw, 1.5rem);
-    margin-bottom: var(--spacing-2xl);
-    color: rgba(255, 255, 255, 0.95);
-    font-weight: 400;
+  font-size: 1.25rem;
+  margin-bottom: var(--space-8);
+  opacity: 0.95;
+  animation: fadeInUp 0.8s ease-out 0.2s both;
 }
 
-.hero-buttons {
-    display: flex;
-    gap: var(--spacing-md);
-    justify-content: center;
-    flex-wrap: wrap;
+.hero-cta {
+  display: inline-flex;
+  gap: var(--space-4);
+  animation: fadeInUp 0.8s ease-out 0.4s both;
 }
 
-/* ========================================
-   6. 버튼 스타일
-======================================== */
-
+/* ============================================
+   8. Buttons
+   ============================================ */
 .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--spacing-sm);
-    padding: var(--spacing-md) var(--spacing-xl);
-    border-radius: var(--radius-full);
-    font-size: var(--font-size-base);
-    font-weight: 600;
-    border: none;
-    cursor: pointer;
-    transition: all var(--transition-base);
-    text-decoration: none;
-    box-shadow: var(--shadow-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-8);
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  text-decoration: none;
+  white-space: nowrap;
 }
 
 .btn-primary {
-    background: white;
-    color: var(--primary);
+  background: white;
+  color: var(--primary);
+  box-shadow: var(--shadow-lg);
 }
 
 .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-xl);
+  background: var(--gray-50);
 }
 
 .btn-secondary {
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-    backdrop-filter: blur(10px);
-    border: 2px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 2px solid white;
+  backdrop-filter: blur(10px);
 }
 
 .btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.3);
-    border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
 }
 
-.btn-large {
-    padding: var(--spacing-lg) var(--spacing-2xl);
-    font-size: var(--font-size-lg);
+.btn-lg {
+  padding: var(--space-5) var(--space-10);
+  font-size: 1.125rem;
 }
 
 .btn-icon {
-    width: 48px;
-    height: 48px;
-    padding: 0;
-    border-radius: var(--radius-full);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  padding: var(--space-3);
+  border-radius: var(--radius-full);
 }
 
-/* ========================================
-   7. 섹션 레이아웃
-======================================== */
-
-section {
-    padding: var(--spacing-3xl) var(--spacing-lg);
+/* ============================================
+   9. Feature Cards (아이콘화)
+   ============================================ */
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-6);
+  margin-top: var(--space-8);
 }
 
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
+.feature-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  text-align: center;
+  box-shadow: var(--shadow-card);
+  transition: all var(--transition-base);
+  border: 1px solid rgba(255, 255, 255, 0.5);
 }
 
+.feature-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+}
+
+.feature-icon {
+  font-size: 4rem;
+  margin-bottom: var(--space-4);
+  display: inline-block;
+  animation: bounce 2s infinite;
+}
+
+.feature-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: var(--space-3);
+  color: var(--gray-900);
+}
+
+.feature-description {
+  font-size: 0.95rem;
+  color: var(--gray-600);
+  line-height: 1.7;
+}
+
+/* ============================================
+   10. Section Headers
+   ============================================ */
 .section-header {
-    text-align: center;
-    margin-bottom: var(--spacing-2xl);
+  text-align: center;
+  margin-bottom: var(--space-12);
+}
+
+.section-badge {
+  display: inline-block;
+  padding: var(--space-2) var(--space-4);
+  background: var(--gradient-warm);
+  color: white;
+  border-radius: var(--radius-full);
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: var(--space-4);
+  box-shadow: var(--shadow-md);
 }
 
 .section-title {
-    font-size: var(--font-size-3xl);
-    font-weight: 800;
-    margin-bottom: var(--spacing-md);
-    background: var(--bg-gradient-warm);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: var(--space-4);
+  background: var(--gradient-warm);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.section-subtitle {
-    font-size: var(--font-size-lg);
-    color: var(--gray-600);
-    max-width: 600px;
-    margin: 0 auto;
+.section-description {
+  font-size: 1.125rem;
+  color: var(--gray-600);
+  max-width: 700px;
+  margin: 0 auto;
 }
 
-/* ========================================
-   8. 그리드 시스템
-======================================== */
-
-.grid {
-    display: grid;
-    gap: var(--spacing-lg);
-}
-
-.grid-2 {
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-}
-
-.grid-3 {
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-}
-
-.grid-4 {
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-}
-
-/* ========================================
-   9. iOS 스타일 위젯
-======================================== */
-
-.widget {
-    background: var(--bg-gradient-cool);
-    border-radius: var(--radius-xl);
-    padding: var(--spacing-xl);
-    color: white;
-    box-shadow: var(--shadow-lg);
-    position: relative;
-    overflow: hidden;
-}
-
-.widget::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-    pointer-events: none;
-}
-
-.widget-title {
-    font-size: var(--font-size-sm);
-    font-weight: 600;
-    opacity: 0.9;
-    margin-bottom: var(--spacing-sm);
-}
-
-.widget-value {
-    font-size: var(--font-size-4xl);
-    font-weight: 800;
-    line-height: 1;
-}
-
-.widget-subtitle {
-    font-size: var(--font-size-sm);
-    opacity: 0.8;
-    margin-top: var(--spacing-sm);
-}
-
-/* ========================================
-   10. 예약 시스템
-======================================== */
-
-.booking-section {
-    background: white;
-    border-radius: var(--radius-xl);
-    padding: var(--spacing-2xl);
-    box-shadow: var(--shadow-xl);
+/* ============================================
+   11. Booking System
+   ============================================ */
+.booking-card {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: var(--space-8);
+  box-shadow: var(--shadow-xl);
+  max-width: 600px;
+  margin: 0 auto;
 }
 
 .booking-form {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
 }
 
 .form-group {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
 }
 
 .form-label {
-    font-size: var(--font-size-sm);
-    font-weight: 600;
-    color: var(--gray-700);
+  font-weight: 600;
+  color: var(--gray-700);
+  font-size: 0.95rem;
 }
 
 .form-input,
 .form-select,
 .form-textarea {
-    padding: var(--spacing-md);
-    border: 2px solid var(--gray-200);
-    border-radius: var(--radius-md);
-    font-size: var(--font-size-base);
-    font-family: var(--font-family);
-    transition: all var(--transition-fast);
+  padding: var(--space-4);
+  border: 2px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: 1rem;
+  transition: all var(--transition-fast);
+  background: white;
 }
 
 .form-input:focus,
 .form-select:focus,
 .form-textarea:focus {
-    outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
 }
 
 .form-textarea {
-    resize: vertical;
-    min-height: 100px;
+  resize: vertical;
+  min-height: 100px;
 }
 
-/* Time Slot Picker */
+/* ============================================
+   12. Time Slots
+   ============================================ */
 .time-slots {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-    gap: var(--spacing-sm);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: var(--space-3);
 }
 
 .time-slot {
-    padding: var(--spacing-md);
-    background: var(--gray-100);
-    border: 2px solid transparent;
-    border-radius: var(--radius-md);
-    text-align: center;
-    cursor: pointer;
-    transition: all var(--transition-fast);
-    font-weight: 600;
+  padding: var(--space-4);
+  border: 2px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  background: white;
+  font-weight: 500;
 }
 
 .time-slot:hover {
-    background: var(--gray-200);
+  border-color: var(--primary);
+  background: var(--gray-50);
 }
 
 .time-slot.selected {
-    background: var(--primary);
-    color: white;
-    border-color: var(--primary-dark);
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+  box-shadow: var(--shadow-md);
 }
 
 .time-slot.disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    background: var(--gray-100);
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: var(--gray-100);
 }
 
-/* ========================================
-   11. 교육 콘텐츠 (만화 스타일)
-======================================== */
+.time-slot.disabled:hover {
+  border-color: var(--gray-200);
+  background: var(--gray-100);
+}
+
+/* ============================================
+   13. Alert / Notification
+   ============================================ */
+.alert {
+  padding: var(--space-4) var(--space-6);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: 0.95rem;
+  animation: slideDown 0.3s ease-out;
+}
+
+.alert-success {
+  background: #D1FAE5;
+  color: #065F46;
+  border: 1px solid #10B981;
+}
+
+.alert-warning {
+  background: #FEF3C7;
+  color: #92400E;
+  border: 1px solid #F59E0B;
+}
+
+.alert-error {
+  background: #FEE2E2;
+  color: #991B1B;
+  border: 1px solid #EF4444;
+}
+
+.alert-info {
+  background: #DBEAFE;
+  color: #1E40AF;
+  border: 1px solid #3B82F6;
+}
+
+/* ============================================
+   14. Badge / Tag
+   ============================================ */
+.badge {
+  display: inline-block;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.badge-success { background: var(--success); color: white; }
+.badge-warning { background: var(--warning); color: white; }
+.badge-error { background: var(--error); color: white; }
+.badge-info { background: var(--info); color: white; }
+.badge-gray { background: var(--gray-200); color: var(--gray-700); }
+
+/* ============================================
+   15. Educational Content (만화 스타일)
+   ============================================ */
+.education-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--space-6);
+  margin-top: var(--space-8);
+}
 
 .education-card {
-    background: white;
-    border-radius: var(--radius-xl);
-    padding: var(--spacing-xl);
-    box-shadow: var(--shadow-card);
-    text-align: center;
-    transition: all var(--transition-base);
-    border: 3px solid transparent;
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-card);
+  text-align: center;
+  transition: transform var(--transition-base);
+  border: 3px solid var(--gray-200);
+  position: relative;
+  overflow: hidden;
+}
+
+.education-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,107,53,0.1) 0%, transparent 70%);
+  transition: transform var(--transition-slow);
+}
+
+.education-card:hover::before {
+  transform: translate(25%, 25%);
 }
 
 .education-card:hover {
-    border-color: var(--primary);
-    transform: translateY(-8px) scale(1.02);
+  transform: rotate(-2deg) scale(1.05);
+  border-color: var(--primary);
 }
 
-.education-icon {
-    width: 100px;
-    height: 100px;
-    margin: 0 auto var(--spacing-lg);
-    background: var(--bg-gradient-warm);
-    border-radius: var(--radius-full);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 3rem;
-    box-shadow: var(--shadow-lg);
+.education-emoji {
+  font-size: 5rem;
+  margin-bottom: var(--space-4);
+  display: block;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
 }
 
 .education-title {
-    font-size: var(--font-size-xl);
-    font-weight: 700;
-    margin-bottom: var(--spacing-md);
-    color: var(--gray-900);
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: var(--space-3);
+  color: var(--primary);
 }
 
-.education-description {
-    font-size: var(--font-size-base);
-    color: var(--gray-600);
-    line-height: 1.7;
+.education-text {
+  font-size: 0.95rem;
+  color: var(--gray-600);
+  line-height: 1.7;
 }
 
-.education-list {
-    list-style: none;
-    text-align: left;
-    margin-top: var(--spacing-md);
+/* ============================================
+   16. Safety Rules
+   ============================================ */
+.safety-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-4);
+  list-style: none;
+  margin-top: var(--space-8);
 }
 
-.education-list li {
-    padding: var(--spacing-sm) 0;
-    padding-left: var(--spacing-lg);
-    position: relative;
-    color: var(--gray-700);
+.safety-item {
+  background: white;
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  transition: all var(--transition-fast);
 }
 
-.education-list li::before {
-    content: '✓';
-    position: absolute;
-    left: 0;
-    color: var(--success);
-    font-weight: bold;
-}
-
-/* ========================================
-   12. 안전수칙
-======================================== */
-
-.safety-rules {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: var(--spacing-md);
-}
-
-.safety-rule {
-    background: white;
-    padding: var(--spacing-lg);
-    border-radius: var(--radius-lg);
-    border-left: 4px solid var(--warning);
-    box-shadow: var(--shadow-sm);
-    display: flex;
-    gap: var(--spacing-md);
-    align-items: flex-start;
+.safety-item:hover {
+  transform: translateX(8px);
+  box-shadow: var(--shadow-lg);
 }
 
 .safety-number {
-    background: var(--warning);
-    color: white;
-    width: 32px;
-    height: 32px;
-    border-radius: var(--radius-full);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    flex-shrink: 0;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  background: var(--gradient-warm);
+  color: white;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.125rem;
 }
 
 .safety-text {
-    font-size: var(--font-size-sm);
-    color: var(--gray-700);
-    line-height: 1.5;
+  color: var(--gray-700);
+  font-size: 0.95rem;
+  line-height: 1.5;
 }
 
-/* ========================================
-   13. 카페 메뉴
-======================================== */
-
-.cafe-menu {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: var(--spacing-lg);
+/* ============================================
+   17. Menu / Price Table
+   ============================================ */
+.menu-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-6);
+  margin-top: var(--space-8);
 }
 
-.menu-item {
-    background: white;
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    box-shadow: var(--shadow-card);
-    transition: all var(--transition-base);
+.menu-card {
+  background: white;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+  transition: all var(--transition-base);
 }
 
-.menu-item:hover {
-    transform: scale(1.05);
-    box-shadow: var(--shadow-xl);
+.menu-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
 }
 
 .menu-image {
-    width: 100%;
-    height: 180px;
-    background: var(--bg-gradient-cool);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 4rem;
+  width: 100%;
+  height: 200px;
+  background: var(--gradient-warm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 4rem;
 }
 
 .menu-content {
-    padding: var(--spacing-lg);
+  padding: var(--space-5);
 }
 
 .menu-name {
-    font-size: var(--font-size-lg);
-    font-weight: 700;
-    margin-bottom: var(--spacing-sm);
-    color: var(--gray-900);
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: var(--space-2);
+  color: var(--gray-900);
 }
 
 .menu-price {
-    font-size: var(--font-size-xl);
-    font-weight: 800;
-    color: var(--primary);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: var(--space-3);
 }
 
-/* ========================================
-   14. 대시보드 스타일
-======================================== */
-
-.dashboard {
-    min-height: 100vh;
-    background: var(--gray-50);
-    padding-top: 80px;
+.menu-description {
+  font-size: 0.9rem;
+  color: var(--gray-600);
 }
 
-.dashboard-header {
-    background: white;
-    padding: var(--spacing-xl);
-    box-shadow: var(--shadow-sm);
-    margin-bottom: var(--spacing-xl);
+/* ============================================
+   18. Contact Section
+   ============================================ */
+.contact-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--space-6);
+  margin-top: var(--space-8);
 }
 
-.dashboard-title {
-    font-size: var(--font-size-3xl);
-    font-weight: 800;
-    color: var(--gray-900);
+.contact-card {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  text-align: center;
+  box-shadow: var(--shadow-card);
+  transition: all var(--transition-base);
 }
 
-.role-selector {
-    display: flex;
-    gap: var(--spacing-md);
-    margin-top: var(--spacing-lg);
-    flex-wrap: wrap;
+.contact-card:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-xl);
 }
 
-.role-button {
-    padding: var(--spacing-md) var(--spacing-xl);
-    background: var(--gray-100);
-    border: 2px solid transparent;
-    border-radius: var(--radius-full);
-    cursor: pointer;
-    font-weight: 600;
-    transition: all var(--transition-fast);
+.contact-icon {
+  font-size: 3rem;
+  margin-bottom: var(--space-3);
 }
 
-.role-button:hover {
-    background: var(--gray-200);
+.contact-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin-bottom: var(--space-2);
+  color: var(--gray-900);
 }
 
-.role-button.active {
-    background: var(--primary);
-    color: white;
-    border-color: var(--primary-dark);
+.contact-info {
+  font-size: 1rem;
+  color: var(--primary);
+  font-weight: 600;
 }
 
-.dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: var(--spacing-lg);
-}
-
-.stat-card {
-    background: white;
-    border-radius: var(--radius-lg);
-    padding: var(--spacing-xl);
-    box-shadow: var(--shadow-card);
-}
-
-.stat-label {
-    font-size: var(--font-size-sm);
-    color: var(--gray-600);
-    font-weight: 600;
-    margin-bottom: var(--spacing-sm);
-}
-
-.stat-value {
-    font-size: var(--font-size-3xl);
-    font-weight: 800;
-    color: var(--gray-900);
-}
-
-.stat-change {
-    font-size: var(--font-size-sm);
-    margin-top: var(--spacing-sm);
-}
-
-.stat-change.positive {
-    color: var(--success);
-}
-
-.stat-change.negative {
-    color: var(--error);
-}
-
-/* ========================================
-   15. QR 코드
-======================================== */
-
-.qr-container {
-    text-align: center;
-    padding: var(--spacing-xl);
-}
-
-.qr-code {
-    width: 200px;
-    height: 200px;
-    margin: 0 auto var(--spacing-lg);
-    background: white;
-    border-radius: var(--radius-lg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: var(--shadow-lg);
-}
-
-/* ========================================
-   16. 알림 & 토스트
-======================================== */
-
-.notification {
-    position: fixed;
-    top: 100px;
-    right: var(--spacing-lg);
-    background: white;
-    padding: var(--spacing-lg);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-xl);
-    max-width: 400px;
-    animation: slideIn 0.3s ease;
-    z-index: 9999;
-}
-
-@keyframes slideIn {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
-
-.notification.success {
-    border-left: 4px solid var(--success);
-}
-
-.notification.error {
-    border-left: 4px solid var(--error);
-}
-
-.notification.warning {
-    border-left: 4px solid var(--warning);
-}
-
-.notification-title {
-    font-weight: 700;
-    margin-bottom: var(--spacing-sm);
-}
-
-.notification-message {
-    font-size: var(--font-size-sm);
-    color: var(--gray-600);
-}
-
-/* ========================================
-   17. 푸터
-======================================== */
-
+/* ============================================
+   19. Footer
+   ============================================ */
 .footer {
-    background: var(--gray-900);
-    color: white;
-    padding: var(--spacing-3xl) var(--spacing-lg);
+  background: var(--gray-900);
+  color: var(--gray-300);
+  padding: var(--space-12) 0 var(--space-6);
+  margin-top: var(--space-16);
 }
 
-.footer-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: var(--spacing-2xl);
-    margin-bottom: var(--spacing-2xl);
+.footer-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--space-8);
+  margin-bottom: var(--space-8);
 }
 
-.footer-section h3 {
-    color: white;
-    margin-bottom: var(--spacing-lg);
+.footer-section h4 {
+  color: white;
+  margin-bottom: var(--space-4);
 }
 
 .footer-links {
-    list-style: none;
+  list-style: none;
 }
 
 .footer-links li {
-    margin-bottom: var(--spacing-sm);
+  margin-bottom: var(--space-2);
 }
 
 .footer-links a {
-    color: var(--gray-400);
-    transition: color var(--transition-fast);
+  color: var(--gray-400);
+  transition: color var(--transition-fast);
 }
 
 .footer-links a:hover {
-    color: white;
+  color: white;
 }
 
 .footer-bottom {
-    text-align: center;
-    padding-top: var(--spacing-xl);
-    border-top: 1px solid var(--gray-700);
-    color: var(--gray-500);
+  text-align: center;
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--gray-800);
+  color: var(--gray-500);
+  font-size: 0.875rem;
 }
 
-/* ========================================
-   18. 반응형 디자인
-======================================== */
+/* ============================================
+   20. Dashboard Styles
+   ============================================ */
+.dashboard-header {
+  background: var(--gradient-warm);
+  color: white;
+  padding: var(--space-8) 0;
+  margin-bottom: var(--space-8);
+  border-radius: var(--radius-lg);
+}
 
+.role-selector {
+  display: flex;
+  gap: var(--space-4);
+  justify-content: center;
+  margin-bottom: var(--space-8);
+  flex-wrap: wrap;
+}
+
+.role-btn {
+  padding: var(--space-4) var(--space-6);
+  background: white;
+  border: 2px solid var(--gray-200);
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.role-btn:hover {
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.role-btn.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+  box-shadow: var(--shadow-lg);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-8);
+}
+
+.stat-card {
+  background: white;
+  padding: var(--space-5);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: var(--space-2);
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: var(--gray-600);
+  font-weight: 500;
+}
+
+/* ============================================
+   21. Progress Bar
+   ============================================ */
+.progress-bar {
+  width: 100%;
+  height: 12px;
+  background: var(--gray-200);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--gradient-warm);
+  border-radius: var(--radius-full);
+  transition: width 0.5s ease-out;
+  box-shadow: 0 1px 3px rgba(255,107,53,0.5);
+}
+
+/* ============================================
+   22. QR Code Display
+   ============================================ */
+.qr-container {
+  background: white;
+  padding: var(--space-6);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.qr-code {
+  width: 200px;
+  height: 200px;
+  margin: 0 auto var(--space-4);
+  background: var(--gray-100);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 5rem;
+}
+
+/* ============================================
+   23. Animations
+   ============================================ */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.animate-pulse {
+  animation: pulse 2s infinite;
+}
+
+/* ============================================
+   24. Responsive Design
+   ============================================ */
+
+/* Tablet (768px and below) */
 @media (max-width: 768px) {
-    :root {
-        --font-size-4xl: 2rem;
-        --font-size-3xl: 1.5rem;
-        --spacing-3xl: 32px;
-    }
-    
-    .header-container {
-        padding: var(--spacing-md);
-    }
-    
-    .nav-menu {
-        display: none;
-        flex-direction: column;
-        position: absolute;
-        top: 100%;
-        left: 0;
-        right: 0;
-        background: white;
-        padding: var(--spacing-lg);
-        box-shadow: var(--shadow-lg);
-    }
-    
-    .nav-menu.active {
-        display: flex;
-    }
-    
-    .menu-toggle {
-        display: flex;
-    }
-    
-    .hero-buttons {
-        flex-direction: column;
-    }
-    
-    .grid-2,
-    .grid-3,
-    .grid-4 {
-        grid-template-columns: 1fr;
-    }
-    
-    .time-slots {
-        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-    }
+  h1 { font-size: 2rem; }
+  h2 { font-size: 1.75rem; }
+  h3 { font-size: 1.5rem; }
+  
+  .hero-title { font-size: 2.5rem; }
+  .section-title { font-size: 2rem; }
+  
+  .navbar-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    flex-direction: column;
+    padding: var(--space-4);
+    box-shadow: var(--shadow-lg);
+  }
+  
+  .navbar-menu.active {
+    display: flex;
+  }
+  
+  .navbar-toggle {
+    display: block;
+  }
+  
+  .grid-2,
+  .grid-3,
+  .grid-4 {
+    grid-template-columns: 1fr;
+  }
+  
+  .hero {
+    min-height: 500px;
+  }
+  
+  .hero-cta {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .btn {
+    width: 100%;
+  }
 }
 
-@media (min-width: 769px) and (max-width: 1024px) {
-    .grid-4 {
-        grid-template-columns: repeat(2, 1fr);
-    }
+/* Mobile (640px and below) */
+@media (max-width: 640px) {
+  :root {
+    --space-6: 16px;
+    --space-8: 24px;
+    --space-12: 32px;
+    --space-16: 48px;
+  }
+  
+  h1 { font-size: 1.75rem; }
+  .hero-title { font-size: 2rem; }
+  .section-title { font-size: 1.75rem; }
+  
+  .card { padding: var(--space-4); }
+  .feature-card { padding: var(--space-5); }
+  .feature-icon { font-size: 3rem; }
+  
+  .time-slots {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .education-emoji {
+    font-size: 4rem;
+  }
+  
+  .stat-value {
+    font-size: 2rem;
+  }
 }
 
-/* ========================================
-   19. 유틸리티 클래스
-======================================== */
-
+/* ============================================
+   25. Utility Classes
+   ============================================ */
 .text-center { text-align: center; }
 .text-left { text-align: left; }
 .text-right { text-align: right; }
 
-.mt-1 { margin-top: var(--spacing-xs); }
-.mt-2 { margin-top: var(--spacing-sm); }
-.mt-3 { margin-top: var(--spacing-md); }
-.mt-4 { margin-top: var(--spacing-lg); }
-.mt-5 { margin-top: var(--spacing-xl); }
+.mt-4 { margin-top: var(--space-4); }
+.mt-6 { margin-top: var(--space-6); }
+.mt-8 { margin-top: var(--space-8); }
+.mb-4 { margin-bottom: var(--space-4); }
+.mb-6 { margin-bottom: var(--space-6); }
+.mb-8 { margin-bottom: var(--space-8); }
 
-.mb-1 { margin-bottom: var(--spacing-xs); }
-.mb-2 { margin-bottom: var(--spacing-sm); }
-.mb-3 { margin-bottom: var(--spacing-md); }
-.mb-4 { margin-bottom: var(--spacing-lg); }
-.mb-5 { margin-bottom: var(--spacing-xl); }
-
-.p-1 { padding: var(--spacing-xs); }
-.p-2 { padding: var(--spacing-sm); }
-.p-3 { padding: var(--spacing-md); }
-.p-4 { padding: var(--spacing-lg); }
-.p-5 { padding: var(--spacing-xl); }
-
-.d-flex { display: flex; }
-.d-grid { display: grid; }
-.d-none { display: none; }
-
-.flex-column { flex-direction: column; }
-.flex-row { flex-direction: row; }
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.items-center { align-items: center; }
 .justify-center { justify-content: center; }
-.align-center { align-items: center; }
-.gap-1 { gap: var(--spacing-sm); }
-.gap-2 { gap: var(--spacing-md); }
-.gap-3 { gap: var(--spacing-lg); }
+.gap-4 { gap: var(--space-4); }
 
-.w-100 { width: 100%; }
-.h-100 { height: 100%; }
+.hidden { display: none; }
+.block { display: block; }
 
-.rounded { border-radius: var(--radius-md); }
-.rounded-lg { border-radius: var(--radius-lg); }
-.rounded-full { border-radius: var(--radius-full); }
-
-.shadow-sm { box-shadow: var(--shadow-sm); }
-.shadow-md { box-shadow: var(--shadow-md); }
-.shadow-lg { box-shadow: var(--shadow-lg); }
-
-.bg-primary { background-color: var(--primary); }
-.bg-secondary { background-color: var(--secondary); }
-.bg-success { background-color: var(--success); }
-.bg-warning { background-color: var(--warning); }
-.bg-error { background-color: var(--error); }
-.bg-gray { background-color: var(--gray-100); }
-
-.text-primary { color: var(--primary); }
-.text-success { color: var(--success); }
-.text-warning { color: var(--warning); }
-.text-error { color: var(--error); }
-.text-gray { color: var(--gray-600); }
-
-/* ========================================
-   20. 애니메이션
-======================================== */
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+/* ============================================
+   26. Print Styles
+   ============================================ */
+@media print {
+  .navbar,
+  .hero,
+  .btn,
+  .footer {
+    display: none;
+  }
+  
+  body {
+    background: white;
+  }
+  
+  .card {
+    box-shadow: none;
+    border: 1px solid #ccc;
+    break-inside: avoid;
+  }
 }
-
-.fade-in {
-    animation: fadeIn 0.6s ease forwards;
-}
-
-@keyframes pulse {
-    0%, 100% {
-        opacity: 1;
-    }
-    50% {
-        opacity: 0.5;
-    }
-}
-
-.pulse {
-    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-@keyframes spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-.spin {
-    animation: spin 1s linear infinite;
-}
-
-/* Loading Spinner */
-.loader {
-    width: 48px;
-    height: 48px;
-    border: 4px solid var(--gray-200);
-    border-top-color: var(--primary);
-    border-radius: var(--radius-full);
-    animation: spin 1s linear infinite;
-}
-
-/* ========================================
-   END OF STYLESHEET
-======================================== */
