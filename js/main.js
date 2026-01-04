@@ -1,768 +1,801 @@
-/**
- * 골드런 승마랜드 - 메인 JavaScript
- * 예약 시스템, 노쇼 방지, 긴급 슬롯 알림
- * Author: Claude AI
- * Last Updated: 2026-01-04
- */
+/* ============================================
+   골드런 승마랜드 - 메인 JavaScript
+   예약 시스템, 알림, 대시보드 기능
+   ============================================ */
 
-// ========================================
-// 1. 전역 상태 관리
-// ========================================
-
+// ============================================
+// 1. Global State Management
+// ============================================
 const AppState = {
-    currentUser: null,
-    bookings: [],
-    urgentSlots: [],
-    horses: [
-        { id: 1, name: '골드런', suitable: true, status: 'available' },
-        { id: 2, name: '썬더', suitable: true, status: 'available' },
-        { id: 3, name: '스타', suitable: false, status: 'available' },
-        { id: 4, name: '루비', suitable: true, status: 'maintenance' },
-        { id: 5, name: '다이아', suitable: true, status: 'available' }
-    ],
-    coaches: [
-        { id: 1, name: '김코치', specialty: '초급', available: true },
-        { id: 2, name: '이코치', specialty: '중급', available: true },
-        { id: 3, name: '박코치', specialty: '고급', available: false }
-    ],
-    timeSlots: [
-        '09:00', '10:00', '11:00', '12:00', 
-        '13:00', '14:00', '15:00', '16:00', '17:00'
-    ]
+  user: null,
+  bookings: [],
+  urgentSlots: [],
+  horses: [],
+  coaches: [],
+  currentRole: 'member', // member, student, coach, admin
+  notifications: [],
 };
 
-// ========================================
-// 2. DOM 준비 완료 이벤트
-// ========================================
+// ============================================
+// 2. Utility Functions
+// ============================================
+const Utils = {
+  // Format date to Korean style
+  formatDate: (date) => {
+    const d = new Date(date);
+    return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일`;
+  },
 
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('🐴 골드런 승마랜드 시스템 시작');
+  // Format time to 24h
+  formatTime: (time) => {
+    return time.padStart(5, '0');
+  },
+
+  // Show notification
+  showNotification: (message, type = 'info') => {
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type}`;
+    notification.innerHTML = `
+      <span>${getIcon(type)}</span>
+      <span>${message}</span>
+    `;
     
-    initializeApp();
-    setupEventListeners();
-    loadUserData();
-    checkUrgentSlots();
+    const container = document.querySelector('.notification-container') || createNotificationContainer();
+    container.appendChild(notification);
+    
+    setTimeout(() => {
+      notification.style.animation = 'slideDown 0.3s ease-out reverse';
+      setTimeout(() => notification.remove(), 300);
+    }, 3000);
+  },
+
+  // Validate phone number
+  validatePhone: (phone) => {
+    const regex = /^01[0-9]-?[0-9]{3,4}-?[0-9]{4}$/;
+    return regex.test(phone);
+  },
+
+  // Validate email
+  validateEmail: (email) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
+  },
+
+  // Calculate days until date
+  daysUntil: (date) => {
+    const today = new Date();
+    const target = new Date(date);
+    const diff = target - today;
+    return Math.ceil(diff / (1000 * 60 * 60 * 24));
+  },
+
+  // Generate random ID
+  generateId: () => {
+    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  },
+};
+
+// ============================================
+// 3. Icon Helper
+// ============================================
+function getIcon(type) {
+  const icons = {
+    success: '✅',
+    error: '❌',
+    warning: '⚠️',
+    info: 'ℹ️',
+  };
+  return icons[type] || icons.info;
+}
+
+function createNotificationContainer() {
+  const container = document.createElement('div');
+  container.className = 'notification-container';
+  container.style.cssText = `
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 400px;
+  `;
+  document.body.appendChild(container);
+  return container;
+}
+
+// ============================================
+// 4. Booking System
+// ============================================
+const BookingSystem = {
+  // Initialize booking form
+  init: () => {
+    const bookingForm = document.getElementById('booking-form');
+    if (bookingForm) {
+      bookingForm.addEventListener('submit', BookingSystem.handleSubmit);
+    }
+
+    // Load available time slots
+    BookingSystem.loadTimeSlots();
+    
+    // Load horses and coaches
+    BookingSystem.loadHorses();
+    BookingSystem.loadCoaches();
+  },
+
+  // Load available time slots
+  loadTimeSlots: () => {
+    const timeSlotsContainer = document.getElementById('time-slots');
+    if (!timeSlotsContainer) return;
+
+    const timeSlots = [
+      '09:00', '10:00', '11:00', '12:00',
+      '13:00', '14:00', '15:00', '16:00', '17:00'
+    ];
+
+    timeSlotsContainer.innerHTML = timeSlots.map(time => `
+      <div class="time-slot" data-time="${time}">
+        <div>${time}</div>
+        <small>예약 가능</small>
+      </div>
+    `).join('');
+
+    // Add click event listeners
+    document.querySelectorAll('.time-slot').forEach(slot => {
+      slot.addEventListener('click', () => {
+        if (slot.classList.contains('disabled')) return;
+        
+        // Remove previous selection
+        document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+        
+        // Select current slot
+        slot.classList.add('selected');
+        
+        // Store selected time
+        const selectedTime = slot.dataset.time;
+        document.getElementById('selected-time').value = selectedTime;
+      });
+    });
+  },
+
+  // Load horses
+  loadHorses: () => {
+    const horseSelect = document.getElementById('horse-select');
+    if (!horseSelect) return;
+
+    const horses = [
+      { id: 1, name: '바람이', suitable: true },
+      { id: 2, name: '별이', suitable: true },
+      { id: 3, name: '구름이', suitable: false },
+      { id: 4, name: '햇살이', suitable: true },
+    ];
+
+    AppState.horses = horses;
+
+    horseSelect.innerHTML = '<option value="">자동 배정</option>' + horses.map(horse => `
+      <option value="${horse.id}">
+        ${horse.name} ${horse.suitable ? '(초보자 적합)' : '(중급 이상)'}
+      </option>
+    `).join('');
+  },
+
+  // Load coaches
+  loadCoaches: () => {
+    const coachSelect = document.getElementById('coach-select');
+    if (!coachSelect) return;
+
+    const coaches = [
+      { id: 1, name: '김코치' },
+      { id: 2, name: '이코치' },
+      { id: 3, name: '박코치' },
+    ];
+
+    AppState.coaches = coaches;
+
+    coachSelect.innerHTML = '<option value="">자동 배정</option>' + coaches.map(coach => `
+      <option value="${coach.id}">${coach.name}</option>
+    `).join('');
+  },
+
+  // Handle booking form submission
+  handleSubmit: async (e) => {
+    e.preventDefault();
+
+    const formData = {
+      date: document.getElementById('booking-date').value,
+      time: document.getElementById('selected-time').value,
+      name: document.getElementById('booking-name').value,
+      phone: document.getElementById('booking-phone').value,
+      horse: document.getElementById('horse-select').value,
+      coach: document.getElementById('coach-select').value,
+      type: document.getElementById('booking-type').value,
+      notes: document.getElementById('booking-notes').value,
+    };
+
+    // Validation
+    if (!formData.date || !formData.time) {
+      Utils.showNotification('날짜와 시간을 선택해주세요.', 'warning');
+      return;
+    }
+
+    if (!formData.name || !formData.phone) {
+      Utils.showNotification('이름과 전화번호를 입력해주세요.', 'warning');
+      return;
+    }
+
+    if (!Utils.validatePhone(formData.phone)) {
+      Utils.showNotification('올바른 전화번호를 입력해주세요. (예: 010-1234-5678)', 'error');
+      return;
+    }
+
+    // Create booking
+    const booking = {
+      id: Utils.generateId(),
+      ...formData,
+      status: 'confirmed',
+      createdAt: new Date().toISOString(),
+    };
+
+    AppState.bookings.push(booking);
+
+    // Show success message
+    Utils.showNotification('예약이 완료되었습니다! SMS가 발송됩니다.', 'success');
+
+    // Simulate SMS sending
+    setTimeout(() => {
+      BookingSystem.sendConfirmationSMS(booking);
+    }, 500);
+
+    // Reset form
+    e.target.reset();
+    document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+
+    // Show booking summary
+    BookingSystem.showBookingSummary(booking);
+  },
+
+  // Send confirmation SMS
+  sendConfirmationSMS: (booking) => {
+    const message = `
+[골드런 승마랜드] 예약 완료
+날짜: ${Utils.formatDate(booking.date)}
+시간: ${booking.time}
+이름: ${booking.name}
+
+예약 24시간 전과 2시간 전에 알림을 보내드립니다.
+취소는 24시간 전까지 가능합니다.
+
+문의: 010-9102-1600
+    `;
+
+    console.log('SMS 발송:', message);
+    Utils.showNotification('예약 확인 SMS가 발송되었습니다.', 'info');
+  },
+
+  // Show booking summary
+  showBookingSummary: (booking) => {
+    const modal = document.createElement('div');
+    modal.className = 'booking-modal';
+    modal.innerHTML = `
+      <div class="card" style="max-width: 500px; margin: 100px auto; position: relative; z-index: 10000;">
+        <h3>🎉 예약 완료!</h3>
+        <div style="margin: 20px 0;">
+          <p><strong>예약번호:</strong> ${booking.id.substr(0, 8)}</p>
+          <p><strong>날짜:</strong> ${Utils.formatDate(booking.date)}</p>
+          <p><strong>시간:</strong> ${booking.time}</p>
+          <p><strong>이름:</strong> ${booking.name}</p>
+          <p><strong>전화번호:</strong> ${booking.phone}</p>
+          <p><strong>유형:</strong> ${booking.type === 'experience' ? '체험승마' : '회원승마'}</p>
+        </div>
+        <div class="alert alert-info">
+          <span>ℹ️</span>
+          <span>예약 확인 SMS가 발송되었습니다.</span>
+        </div>
+        <button class="btn btn-primary" onclick="this.closest('.booking-modal').remove()">확인</button>
+      </div>
+      <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999;" onclick="this.parentElement.remove()"></div>
+    `;
+    document.body.appendChild(modal);
+  },
+};
+
+// ============================================
+// 5. Urgent Slot System (긴급 슬롯)
+// ============================================
+const UrgentSlotSystem = {
+  // Initialize urgent slot monitoring
+  init: () => {
+    // Simulate checking for urgent slots every 30 seconds
+    setInterval(UrgentSlotSystem.checkUrgentSlots, 30000);
+  },
+
+  // Check for urgent slots
+  checkUrgentSlots: async () => {
+    // In production, this would fetch from API
+    // Simulating random urgent slot availability
+    if (Math.random() < 0.1) { // 10% chance
+      const urgentSlot = {
+        id: Utils.generateId(),
+        date: new Date().toISOString().split('T')[0],
+        time: '14:00',
+        reason: '학교승마 취소',
+        createdAt: new Date().toISOString(),
+      };
+
+      AppState.urgentSlots.push(urgentSlot);
+      UrgentSlotSystem.notifyWaitlist(urgentSlot);
+    }
+  },
+
+  // Notify waitlist
+  notifyWaitlist: (slot) => {
+    Utils.showNotification(
+      `🚨 긴급 슬롯 발생! ${Utils.formatDate(slot.date)} ${slot.time} - 지금 예약하세요!`,
+      'warning'
+    );
+
+    // Show urgent slot card
+    UrgentSlotSystem.showUrgentSlotCard(slot);
+  },
+
+  // Show urgent slot card
+  showUrgentSlotCard: (slot) => {
+    const container = document.getElementById('urgent-slots-container');
+    if (!container) return;
+
+    const card = document.createElement('div');
+    card.className = 'card card-primary animate-pulse';
+    card.innerHTML = `
+      <div class="card-icon">🚨</div>
+      <h3 class="card-title">긴급 슬롯!</h3>
+      <p class="card-description">
+        <strong>${Utils.formatDate(slot.date)} ${slot.time}</strong><br>
+        ${slot.reason}<br>
+        <small>선착순 마감됩니다!</small>
+      </p>
+      <button class="btn btn-secondary" onclick="BookingSystem.bookUrgentSlot('${slot.id}')">
+        지금 예약하기
+      </button>
+    `;
+
+    container.appendChild(card);
+
+    // Auto-remove after 5 minutes
+    setTimeout(() => card.remove(), 300000);
+  },
+
+  // Book urgent slot
+  bookUrgentSlot: (slotId) => {
+    const slot = AppState.urgentSlots.find(s => s.id === slotId);
+    if (!slot) {
+      Utils.showNotification('이미 마감된 슬롯입니다.', 'error');
+      return;
+    }
+
+    // Pre-fill booking form
+    document.getElementById('booking-date').value = slot.date;
+    document.getElementById('selected-time').value = slot.time;
+
+    // Scroll to booking form
+    document.getElementById('booking').scrollIntoView({ behavior: 'smooth' });
+
+    Utils.showNotification('예약 정보를 입력해주세요.', 'info');
+  },
+};
+
+// ============================================
+// 6. Dashboard System
+// ============================================
+const Dashboard = {
+  // Initialize dashboard
+  init: () => {
+    const roleButtons = document.querySelectorAll('.role-btn');
+    roleButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const role = btn.dataset.role;
+        Dashboard.switchRole(role);
+      });
+    });
+
+    // Load initial dashboard
+    Dashboard.switchRole(AppState.currentRole);
+  },
+
+  // Switch role
+  switchRole: (role) => {
+    AppState.currentRole = role;
+
+    // Update active button
+    document.querySelectorAll('.role-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.role === role);
+    });
+
+    // Hide all dashboards
+    document.querySelectorAll('.dashboard-content').forEach(content => {
+      content.classList.add('hidden');
+    });
+
+    // Show selected dashboard
+    const selectedDashboard = document.getElementById(`${role}-dashboard`);
+    if (selectedDashboard) {
+      selectedDashboard.classList.remove('hidden');
+      Dashboard.loadDashboardData(role);
+    }
+  },
+
+  // Load dashboard data
+  loadDashboardData: (role) => {
+    switch (role) {
+      case 'member':
+        Dashboard.loadMemberDashboard();
+        break;
+      case 'student':
+        Dashboard.loadStudentDashboard();
+        break;
+      case 'coach':
+        Dashboard.loadCoachDashboard();
+        break;
+      case 'admin':
+        Dashboard.loadAdminDashboard();
+        break;
+    }
+  },
+
+  // Load member dashboard
+  loadMemberDashboard: () => {
+    const stats = {
+      totalBookings: AppState.bookings.length,
+      completedLessons: Math.floor(AppState.bookings.length * 0.8),
+      attendanceRate: 85,
+      upcomingLessons: 3,
+    };
+
+    Dashboard.updateStats('member-stats', [
+      { label: '전체 예약', value: stats.totalBookings },
+      { label: '완료한 레슨', value: stats.completedLessons },
+      { label: '출석률', value: `${stats.attendanceRate}%` },
+      { label: '예정된 레슨', value: stats.upcomingLessons },
+    ]);
+
+    // Generate QR code
+    Dashboard.generateQRCode('member-qr');
+
+    // Load booking history
+    Dashboard.loadBookingHistory();
+  },
+
+  // Load student dashboard
+  loadStudentDashboard: () => {
+    const stats = {
+      totalSessions: 10,
+      completedSessions: 7,
+      attendanceRate: 70,
+      nextLesson: '2026-01-10',
+    };
+
+    Dashboard.updateStats('student-stats', [
+      { label: '전체 수업', value: stats.totalSessions },
+      { label: '완료', value: stats.completedSessions },
+      { label: '출석률', value: `${stats.attendanceRate}%` },
+      { label: '남은 수업', value: stats.totalSessions - stats.completedSessions },
+    ]);
+
+    // Update progress bar
+    const progressBar = document.getElementById('student-progress');
+    if (progressBar) {
+      const percentage = (stats.completedSessions / stats.totalSessions) * 100;
+      progressBar.querySelector('.progress-fill').style.width = `${percentage}%`;
+      progressBar.querySelector('.progress-text').textContent = 
+        `${stats.completedSessions}/${stats.totalSessions} 완료 (${percentage}%)`;
+    }
+
+    // Update Horsepia sync status
+    Dashboard.updateHorsepiaStatus();
+  },
+
+  // Load coach dashboard
+  loadCoachDashboard: () => {
+    const stats = {
+      todayLessons: 8,
+      completedToday: 5,
+      totalStudents: 24,
+      averageRating: 4.8,
+    };
+
+    Dashboard.updateStats('coach-stats', [
+      { label: '오늘 수업', value: stats.todayLessons },
+      { label: '완료', value: stats.completedToday },
+      { label: '전체 학생', value: stats.totalStudents },
+      { label: '평균 평점', value: `⭐ ${stats.averageRating}` },
+    ]);
+
+    // Load today's schedule
+    Dashboard.loadTodaySchedule();
+  },
+
+  // Load admin dashboard
+  loadAdminDashboard: () => {
+    const stats = {
+      todayRevenue: 1250000,
+      todayBookings: 32,
+      noShowRate: 3.2,
+      horsepiaSync: 'OK',
+    };
+
+    Dashboard.updateStats('admin-stats', [
+      { label: '오늘 매출', value: `${stats.todayRevenue.toLocaleString()}원` },
+      { label: '오늘 예약', value: stats.todayBookings },
+      { label: '노쇼율', value: `${stats.noShowRate}%` },
+      { label: '호스피아', value: stats.horsepiaSync },
+    ]);
+
+    // Load charts and analytics
+    Dashboard.loadAnalytics();
+  },
+
+  // Update stats
+  updateStats: (containerId, stats) => {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    container.innerHTML = stats.map(stat => `
+      <div class="stat-card">
+        <div class="stat-value">${stat.value}</div>
+        <div class="stat-label">${stat.label}</div>
+      </div>
+    `).join('');
+  },
+
+  // Generate QR code
+  generateQRCode: (containerId) => {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    container.innerHTML = `
+      <div class="qr-container">
+        <div class="qr-code">📱</div>
+        <p><strong>출석 체크용 QR 코드</strong></p>
+        <small>코치에게 스캔해주세요</small>
+      </div>
+    `;
+  },
+
+  // Load booking history
+  loadBookingHistory: () => {
+    const container = document.getElementById('booking-history');
+    if (!container) return;
+
+    if (AppState.bookings.length === 0) {
+      container.innerHTML = '<p class="text-center" style="color: #9CA3AF;">예약 내역이 없습니다.</p>';
+      return;
+    }
+
+    container.innerHTML = AppState.bookings.map(booking => `
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: start;">
+          <div>
+            <h4>${Utils.formatDate(booking.date)} ${booking.time}</h4>
+            <p style="color: #6B7280; font-size: 0.9rem; margin: 8px 0;">
+              ${booking.type === 'experience' ? '체험승마' : '회원승마'}
+            </p>
+          </div>
+          <span class="badge badge-${booking.status === 'confirmed' ? 'success' : 'gray'}">
+            ${booking.status === 'confirmed' ? '예약완료' : booking.status}
+          </span>
+        </div>
+      </div>
+    `).join('');
+  },
+
+  // Update Horsepia status
+  updateHorsepiaStatus: () => {
+    const container = document.getElementById('horsepia-status');
+    if (!container) return;
+
+    container.innerHTML = `
+      <div class="card">
+        <h4>🔗 호스피아 연동 상태</h4>
+        <div style="margin: 16px 0;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <span>동기화 상태:</span>
+            <span class="badge badge-success">정상</span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span>마지막 동기화:</span>
+            <span>2026-01-04 07:30</span>
+          </div>
+        </div>
+        <button class="btn btn-secondary" style="width: 100%; margin-top: 12px;">
+          지금 동기화
+        </button>
+      </div>
+    `;
+  },
+
+  // Load today's schedule
+  loadTodaySchedule: () => {
+    const container = document.getElementById('today-schedule');
+    if (!container) return;
+
+    const schedule = [
+      { time: '09:00', student: '김민지', horse: '바람이', status: 'completed' },
+      { time: '10:00', student: '이서준', horse: '별이', status: 'completed' },
+      { time: '11:00', student: '박지우', horse: '햇살이', status: 'completed' },
+      { time: '13:00', student: '최예나', horse: '구름이', status: 'in-progress' },
+      { time: '14:00', student: '정하윤', horse: '바람이', status: 'upcoming' },
+      { time: '15:00', student: '강도현', horse: '별이', status: 'upcoming' },
+    ];
+
+    container.innerHTML = schedule.map(lesson => `
+      <div class="card" style="padding: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <strong style="font-size: 1.1rem;">${lesson.time}</strong>
+            <p style="margin: 4px 0; color: #6B7280;">
+              ${lesson.student} - ${lesson.horse}
+            </p>
+          </div>
+          <span class="badge badge-${
+            lesson.status === 'completed' ? 'success' :
+            lesson.status === 'in-progress' ? 'warning' : 'info'
+          }">
+            ${
+              lesson.status === 'completed' ? '완료' :
+              lesson.status === 'in-progress' ? '진행중' : '예정'
+            }
+          </span>
+        </div>
+      </div>
+    `).join('');
+  },
+
+  // Load analytics
+  loadAnalytics: () => {
+    const container = document.getElementById('analytics-container');
+    if (!container) return;
+
+    container.innerHTML = `
+      <div class="card">
+        <h4>📊 이번 주 통계</h4>
+        <div style="margin-top: 16px;">
+          <div style="margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+              <span>월요일</span>
+              <strong>28건</strong>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: 70%;"></div>
+            </div>
+          </div>
+          <div style="margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+              <span>화요일</span>
+              <strong>32건</strong>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: 80%;"></div>
+            </div>
+          </div>
+          <div style="margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+              <span>수요일</span>
+              <strong>35건</strong>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: 87%;"></div>
+            </div>
+          </div>
+          <div style="margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+              <span>목요일</span>
+              <strong>30건</strong>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: 75%;"></div>
+            </div>
+          </div>
+          <div style="margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+              <span>금요일</span>
+              <strong>38건</strong>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: 95%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  },
+};
+
+// ============================================
+// 7. Mobile Menu Toggle
+// ============================================
+function initMobileMenu() {
+  const navbarToggle = document.querySelector('.navbar-toggle');
+  const navbarMenu = document.querySelector('.navbar-menu');
+
+  if (navbarToggle && navbarMenu) {
+    navbarToggle.addEventListener('click', () => {
+      navbarMenu.classList.toggle('active');
+    });
+  }
+}
+
+// ============================================
+// 8. Smooth Scroll
+// ============================================
+function initSmoothScroll() {
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+      const href = this.getAttribute('href');
+      if (href === '#') return;
+      
+      e.preventDefault();
+      const target = document.querySelector(href);
+      if (target) {
+        target.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }
+    });
+  });
+}
+
+// ============================================
+// 9. Scroll Animations
+// ============================================
+function initScrollAnimations() {
+  const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -100px 0px'
+  };
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.style.animation = 'fadeInUp 0.8s ease-out';
+        entry.target.style.opacity = '1';
+      }
+    });
+  }, observerOptions);
+
+  document.querySelectorAll('.card, .feature-card, .education-card').forEach(el => {
+    el.style.opacity = '0';
+    observer.observe(el);
+  });
+}
+
+// ============================================
+// 10. Initialize App
+// ============================================
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('🐴 골드런 승마랜드 시스템 초기화...');
+
+  // Initialize all systems
+  BookingSystem.init();
+  UrgentSlotSystem.init();
+  
+  // Check if we're on dashboard page
+  if (document.getElementById('dashboard-container')) {
+    Dashboard.init();
+  }
+
+  // Initialize UI features
+  initMobileMenu();
+  initSmoothScroll();
+  initScrollAnimations();
+
+  console.log('✅ 초기화 완료!');
 });
 
-// ========================================
-// 3. 앱 초기화
-// ========================================
-
-function initializeApp() {
-    // 모바일 메뉴 토글
-    setupMobileMenu();
-    
-    // 스크롤 애니메이션
-    setupScrollAnimations();
-    
-    // 날씨 정보 로드
-    loadWeatherInfo();
-    
-    // 현재 시간 표시
-    updateCurrentTime();
-    setInterval(updateCurrentTime, 60000); // 1분마다 업데이트
-}
-
-// ========================================
-// 4. 이벤트 리스너 설정
-// ========================================
-
-function setupEventListeners() {
-    // 예약 폼
-    const bookingForm = document.getElementById('bookingForm');
-    if (bookingForm) {
-        bookingForm.addEventListener('submit', handleBookingSubmit);
-    }
-    
-    // 시간 슬롯 선택
-    const timeSlots = document.querySelectorAll('.time-slot');
-    timeSlots.forEach(slot => {
-        slot.addEventListener('click', handleTimeSlotClick);
-    });
-    
-    // 역할 선택 (대시보드)
-    const roleButtons = document.querySelectorAll('.role-button');
-    roleButtons.forEach(button => {
-        button.addEventListener('click', handleRoleSwitch);
-    });
-    
-    // 네비게이션 링크
-    const navLinks = document.querySelectorAll('.nav-link');
-    navLinks.forEach(link => {
-        link.addEventListener('click', handleNavigation);
-    });
-}
-
-// ========================================
-// 5. 모바일 메뉴
-// ========================================
-
-function setupMobileMenu() {
-    const menuToggle = document.querySelector('.menu-toggle');
-    const navMenu = document.querySelector('.nav-menu');
-    
-    if (menuToggle && navMenu) {
-        menuToggle.addEventListener('click', () => {
-            navMenu.classList.toggle('active');
-            
-            // 햄버거 아이콘 애니메이션
-            const spans = menuToggle.querySelectorAll('span');
-            spans[0].style.transform = navMenu.classList.contains('active') 
-                ? 'rotate(45deg) translateY(8px)' 
-                : 'none';
-            spans[1].style.opacity = navMenu.classList.contains('active') ? '0' : '1';
-            spans[2].style.transform = navMenu.classList.contains('active') 
-                ? 'rotate(-45deg) translateY(-8px)' 
-                : 'none';
-        });
-    }
-}
-
-// ========================================
-// 6. 스크롤 애니메이션
-// ========================================
-
-function setupScrollAnimations() {
-    const observerOptions = {
-        threshold: 0.1,
-        rootMargin: '0px 0px -100px 0px'
-    };
-    
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('fade-in');
-            }
-        });
-    }, observerOptions);
-    
-    // 애니메이션 대상 요소 관찰
-    const animatedElements = document.querySelectorAll('.card, .education-card, .menu-item');
-    animatedElements.forEach(el => observer.observe(el));
-}
-
-// ========================================
-// 7. 예약 시스템
-// ========================================
-
-async function handleBookingSubmit(e) {
-    e.preventDefault();
-    
-    const formData = new FormData(e.target);
-    const bookingData = {
-        name: formData.get('name'),
-        phone: formData.get('phone'),
-        date: formData.get('date'),
-        timeSlot: formData.get('timeSlot'),
-        horseId: formData.get('horse'),
-        coachId: formData.get('coach'),
-        type: formData.get('bookingType'),
-        specialRequests: formData.get('specialRequests')
-    };
-    
-    // 유효성 검사
-    if (!validateBooking(bookingData)) {
-        showNotification('error', '예약 오류', '모든 필수 항목을 입력해주세요.');
-        return;
-    }
-    
-    // 로딩 표시
-    showLoader();
-    
-    try {
-        // API 호출 (시뮬레이션)
-        await simulateAPICall(bookingData);
-        
-        // 예약 성공
-        showNotification('success', '예약 완료!', 
-            `${bookingData.date} ${bookingData.timeSlot}에 예약되었습니다. SMS가 발송되었습니다.`);
-        
-        // 알림 스케줄링
-        scheduleNotifications(bookingData);
-        
-        // 폼 초기화
-        e.target.reset();
-        
-        // 대시보드로 이동 (선택사항)
-        setTimeout(() => {
-            // window.location.href = '/dashboard.html';
-        }, 2000);
-        
-    } catch (error) {
-        showNotification('error', '예약 실패', '예약 중 오류가 발생했습니다. 다시 시도해주세요.');
-        console.error('Booking error:', error);
-    } finally {
-        hideLoader();
-    }
-}
-
-function validateBooking(data) {
-    return data.name && data.phone && data.date && data.timeSlot;
-}
-
-async function simulateAPICall(data) {
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            console.log('📝 예약 데이터:', data);
-            AppState.bookings.push({
-                id: Date.now(),
-                ...data,
-                status: 'confirmed',
-                createdAt: new Date().toISOString()
-            });
-            resolve();
-        }, 1500);
-    });
-}
-
-// ========================================
-// 8. 노쇼 방지 알림 스케줄
-// ========================================
-
-function scheduleNotifications(booking) {
-    const bookingDate = new Date(booking.date + ' ' + booking.timeSlot);
-    const now = new Date();
-    
-    // 24시간 전 알림
-    const reminder24h = new Date(bookingDate.getTime() - 24 * 60 * 60 * 1000);
-    if (reminder24h > now) {
-        console.log('⏰ 24시간 전 알림 설정:', reminder24h);
-        // 실제로는 서버에서 SMS 발송 스케줄링
-    }
-    
-    // 2시간 전 알림
-    const reminder2h = new Date(bookingDate.getTime() - 2 * 60 * 60 * 1000);
-    if (reminder2h > now) {
-        console.log('⏰ 2시간 전 알림 설정:', reminder2h);
-    }
-    
-    // 노쇼 체크 (예약 시간 1시간 후)
-    const noShowCheck = new Date(bookingDate.getTime() + 60 * 60 * 1000);
-    console.log('🚫 노쇼 체크 설정:', noShowCheck);
-}
-
-// ========================================
-// 9. 긴급 슬롯 시스템
-// ========================================
-
-async function checkUrgentSlots() {
-    try {
-        // API에서 긴급 슬롯 조회 (시뮬레이션)
-        const urgentSlots = await fetchUrgentSlots();
-        
-        if (urgentSlots.length > 0) {
-            AppState.urgentSlots = urgentSlots;
-            showUrgentSlotNotification(urgentSlots[0]);
-        }
-        
-    } catch (error) {
-        console.error('긴급 슬롯 조회 오류:', error);
-    }
-    
-    // 5분마다 체크
-    setTimeout(checkUrgentSlots, 5 * 60 * 1000);
-}
-
-async function fetchUrgentSlots() {
-    // 실제로는 API 호출
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            // 시뮬레이션: 랜덤으로 긴급 슬롯 생성
-            const hasUrgentSlot = Math.random() > 0.9; // 10% 확률
-            
-            if (hasUrgentSlot) {
-                resolve([{
-                    id: Date.now(),
-                    date: new Date().toISOString().split('T')[0],
-                    timeSlot: '14:00',
-                    reason: '학교승마 취소',
-                    availableUntil: new Date(Date.now() + 30 * 60 * 1000).toISOString()
-                }]);
-            } else {
-                resolve([]);
-            }
-        }, 500);
-    });
-}
-
-function showUrgentSlotNotification(slot) {
-    const message = `
-        🔔 긴급 슬롯 알림!
-        
-        ${slot.date} ${slot.timeSlot}
-        사유: ${slot.reason}
-        
-        선착순 예약 가능! (30분 내)
-    `;
-    
-    showNotification('warning', '긴급 슬롯 발생!', message, 10000);
-    
-    // 소리 알림 (선택사항)
-    playNotificationSound();
-}
-
-// ========================================
-// 10. 시간 슬롯 선택
-// ========================================
-
-function handleTimeSlotClick(e) {
-    const slot = e.currentTarget;
-    
-    // 비활성화된 슬롯은 클릭 불가
-    if (slot.classList.contains('disabled')) {
-        showNotification('warning', '예약 불가', '이미 예약된 시간입니다.');
-        return;
-    }
-    
-    // 이전 선택 해제
-    document.querySelectorAll('.time-slot').forEach(s => {
-        s.classList.remove('selected');
-    });
-    
-    // 현재 슬롯 선택
-    slot.classList.add('selected');
-    
-    // 숨겨진 입력 필드 업데이트
-    const timeInput = document.getElementById('selectedTime');
-    if (timeInput) {
-        timeInput.value = slot.dataset.time;
-    }
-}
-
-// ========================================
-// 11. 역할 전환 (대시보드)
-// ========================================
-
-function handleRoleSwitch(e) {
-    const button = e.currentTarget;
-    const role = button.dataset.role;
-    
-    // 모든 버튼 비활성화
-    document.querySelectorAll('.role-button').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    
-    // 현재 버튼 활성화
-    button.classList.add('active');
-    
-    // 대시보드 콘텐츠 변경
-    updateDashboardContent(role);
-}
-
-function updateDashboardContent(role) {
-    console.log('🔄 역할 전환:', role);
-    
-    const content = document.getElementById('dashboardContent');
-    if (!content) return;
-    
-    // 역할별 대시보드 콘텐츠
-    const dashboards = {
-        member: generateMemberDashboard(),
-        student: generateStudentDashboard(),
-        coach: generateCoachDashboard(),
-        admin: generateAdminDashboard()
-    };
-    
-    content.innerHTML = dashboards[role] || dashboards.member;
-    
-    // 차트 초기화 (있는 경우)
-    initializeCharts();
-}
-
-// ========================================
-// 12. 대시보드 HTML 생성
-// ========================================
-
-function generateMemberDashboard() {
-    return `
-        <div class="dashboard-grid">
-            <div class="stat-card">
-                <div class="stat-label">이번 달 출석</div>
-                <div class="stat-value">8회</div>
-                <div class="stat-change positive">+2 지난달 대비</div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-label">출석률</div>
-                <div class="stat-value">85%</div>
-                <div class="stat-change positive">+5%</div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-label">다음 예약</div>
-                <div class="stat-value">2일 후</div>
-                <div class="stat-change">2026-01-06 14:00</div>
-            </div>
-            
-            <div class="card">
-                <h3>내 예약 내역</h3>
-                <div class="booking-list">
-                    <div class="booking-item">
-                        <div class="booking-date">2026-01-06 14:00</div>
-                        <div class="booking-horse">말: 골드런 | 코치: 김코치</div>
-                        <span class="badge bg-success">확정</span>
-                    </div>
-                    <div class="booking-item">
-                        <div class="booking-date">2026-01-03 10:00</div>
-                        <div class="booking-horse">말: 썬더 | 코치: 이코치</div>
-                        <span class="badge bg-gray">완료</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="card qr-container">
-                <h3>출석 QR 코드</h3>
-                <div class="qr-code">
-                    <div style="font-size: 4rem;">📱</div>
-                </div>
-                <p>코치에게 스캔해주세요</p>
-            </div>
-        </div>
-    `;
-}
-
-function generateStudentDashboard() {
-    return `
-        <div class="dashboard-grid">
-            <div class="widget">
-                <div class="widget-title">호스피아 연동 상태</div>
-                <div class="widget-value">✓ 연동됨</div>
-                <div class="widget-subtitle">학교승마체험 프로그램</div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-label">출석 현황</div>
-                <div class="stat-value">7/10회</div>
-                <div class="stat-change">70% 완료</div>
-            </div>
-            
-            <div class="card">
-                <h3>다음 수업</h3>
-                <div class="class-info">
-                    <p><strong>일시:</strong> 2026-01-06 (월) 15:00</p>
-                    <p><strong>코치:</strong> 김코치</p>
-                    <p><strong>말:</strong> 골드런</p>
-                    <button class="btn btn-primary mt-3">수업 확인</button>
-                </div>
-            </div>
-            
-            <div class="card">
-                <h3>학습 진도</h3>
-                <div class="progress-list">
-                    <div class="progress-item">
-                        <span>기초 자세</span>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: 100%"></div>
-                        </div>
-                    </div>
-                    <div class="progress-item">
-                        <span>평보</span>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: 80%"></div>
-                        </div>
-                    </div>
-                    <div class="progress-item">
-                        <span>속보</span>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: 40%"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-}
-
-function generateCoachDashboard() {
-    return `
-        <div class="dashboard-grid">
-            <div class="stat-card">
-                <div class="stat-label">오늘의 수업</div>
-                <div class="stat-value">5건</div>
-                <div class="stat-change">3건 완료 / 2건 예정</div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-label">담당 학생</div>
-                <div class="stat-value">24명</div>
-                <div class="stat-change">이번 달</div>
-            </div>
-            
-            <div class="card">
-                <h3>오늘의 스케줄</h3>
-                <div class="schedule-list">
-                    <div class="schedule-item completed">
-                        <span class="time">09:00</span>
-                        <span class="student">김민준 (초급)</span>
-                        <span class="badge bg-success">완료</span>
-                    </div>
-                    <div class="schedule-item completed">
-                        <span class="time">10:00</span>
-                        <span class="student">이서연 (중급)</span>
-                        <span class="badge bg-success">완료</span>
-                    </div>
-                    <div class="schedule-item pending">
-                        <span class="time">14:00</span>
-                        <span class="student">박지호 (초급)</span>
-                        <span class="badge bg-warning">예정</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="card">
-                <h3>말 배정 현황</h3>
-                <div class="horse-list">
-                    ${AppState.horses.map(horse => `
-                        <div class="horse-item">
-                            <span class="horse-name">🐴 ${horse.name}</span>
-                            <span class="badge ${horse.status === 'available' ? 'bg-success' : 'bg-warning'}">
-                                ${horse.status === 'available' ? '사용 가능' : '점검 중'}
-                            </span>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        </div>
-    `;
-}
-
-function generateAdminDashboard() {
-    return `
-        <div class="dashboard-grid">
-            <div class="stat-card">
-                <div class="stat-label">오늘 매출</div>
-                <div class="stat-value">₩450,000</div>
-                <div class="stat-change positive">+12% 어제 대비</div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-label">총 예약</div>
-                <div class="stat-value">28건</div>
-                <div class="stat-change">완료: 18 | 예정: 10</div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-label">노쇼율</div>
-                <div class="stat-value">2.5%</div>
-                <div class="stat-change positive">-1.5% 지난주 대비</div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-label">회원 수</div>
-                <div class="stat-value">156명</div>
-                <div class="stat-change positive">+8 이번 달</div>
-            </div>
-            
-            <div class="card">
-                <h3>호스피아 동기화</h3>
-                <p>마지막 동기화: 5분 전</p>
-                <button class="btn btn-primary mt-3">지금 동기화</button>
-            </div>
-            
-            <div class="card">
-                <h3>긴급 알림</h3>
-                <div class="alert-list">
-                    <div class="alert-item warning">
-                        <span>⚠️ 루비(말) - 건강 체크 필요</span>
-                    </div>
-                    <div class="alert-item info">
-                        <span>ℹ️ 긴급 슬롯 1건 발생 (14:00)</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-}
-
-// ========================================
-// 13. 알림 시스템
-// ========================================
-
-function showNotification(type, title, message, duration = 5000) {
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.innerHTML = `
-        <div class="notification-title">${title}</div>
-        <div class="notification-message">${message}</div>
-    `;
-    
-    document.body.appendChild(notification);
-    
-    // 자동 제거
-    setTimeout(() => {
-        notification.style.animation = 'slideOut 0.3s ease';
-        setTimeout(() => notification.remove(), 300);
-    }, duration);
-}
-
-function playNotificationSound() {
-    // 실제 환경에서는 오디오 파일 재생
-    console.log('🔔 알림음 재생');
-}
-
-// ========================================
-// 14. 로더 표시/숨김
-// ========================================
-
-function showLoader() {
-    const loader = document.createElement('div');
-    loader.id = 'globalLoader';
-    loader.className = 'loader';
-    loader.style.position = 'fixed';
-    loader.style.top = '50%';
-    loader.style.left = '50%';
-    loader.style.transform = 'translate(-50%, -50%)';
-    loader.style.zIndex = '10000';
-    
-    document.body.appendChild(loader);
-}
-
-function hideLoader() {
-    const loader = document.getElementById('globalLoader');
-    if (loader) {
-        loader.remove();
-    }
-}
-
-// ========================================
-// 15. 날씨 정보
-// ========================================
-
-async function loadWeatherInfo() {
-    const weatherWidget = document.getElementById('weatherWidget');
-    if (!weatherWidget) return;
-    
-    // 실제로는 날씨 API 호출
-    const weatherData = {
-        temp: 7,
-        condition: '대체로 흐림',
-        high: 8,
-        low: -1,
-        suitable: true
-    };
-    
-    weatherWidget.innerHTML = `
-        <div class="widget">
-            <div class="widget-title">날씨 정보</div>
-            <div class="widget-value">${weatherData.temp}°</div>
-            <div class="widget-subtitle">${weatherData.condition}</div>
-            <div class="widget-subtitle">최고:${weatherData.high}° 최저:${weatherData.low}°</div>
-            <div class="mt-3">
-                ${weatherData.suitable 
-                    ? '✅ 승마하기 좋은 날씨입니다' 
-                    : '⚠️ 날씨 주의가 필요합니다'}
-            </div>
-        </div>
-    `;
-}
-
-// ========================================
-// 16. 현재 시간 업데이트
-// ========================================
-
-function updateCurrentTime() {
-    const timeDisplay = document.getElementById('currentTime');
-    if (!timeDisplay) return;
-    
-    const now = new Date();
-    const timeString = now.toLocaleString('ko-KR', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        weekday: 'long'
-    });
-    
-    timeDisplay.textContent = timeString;
-}
-
-// ========================================
-// 17. 네비게이션 처리
-// ========================================
-
-function handleNavigation(e) {
-    e.preventDefault();
-    const target = e.currentTarget.getAttribute('href');
-    
-    if (target.startsWith('#')) {
-        // 페이지 내 스크롤
-        const element = document.querySelector(target);
-        if (element) {
-            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-    } else {
-        // 페이지 이동
-        window.location.href = target;
-    }
-    
-    // 모바일 메뉴 닫기
-    const navMenu = document.querySelector('.nav-menu');
-    if (navMenu) {
-        navMenu.classList.remove('active');
-    }
-}
-
-// ========================================
-// 18. 사용자 데이터 로드
-// ========================================
-
-async function loadUserData() {
-    // 로컬 스토리지 또는 API에서 사용자 데이터 로드
-    const savedUser = localStorage.getItem('currentUser');
-    
-    if (savedUser) {
-        AppState.currentUser = JSON.parse(savedUser);
-        console.log('👤 사용자 로드:', AppState.currentUser);
-    }
-}
-
-// ========================================
-// 19. 차트 초기화 (선택사항)
-// ========================================
-
-function initializeCharts() {
-    // Chart.js 또는 다른 차트 라이브러리 사용
-    console.log('📊 차트 초기화');
-}
-
-// ========================================
-// 20. 유틸리티 함수
-// ========================================
-
-function formatDate(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ko-KR', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        weekday: 'short'
-    });
-}
-
-function formatCurrency(amount) {
-    return new Intl.NumberFormat('ko-KR', {
-        style: 'currency',
-        currency: 'KRW'
-    }).format(amount);
-}
-
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
-// ========================================
-// 21. Export (모듈 사용 시)
-// ========================================
-
-// export { AppState, showNotification, handleBookingSubmit };
-
-console.log('✅ 골드런 승마랜드 JavaScript 로드 완료');
+// ============================================
+// 11. Export for global access
+// ============================================
+window.BookingSystem = BookingSystem;
+window.UrgentSlotSystem = UrgentSlotSystem;
+window.Dashboard = Dashboard;
+window.Utils = Utils;
