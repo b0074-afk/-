@@ -108,9 +108,11 @@
 #### 📞 연락처 정보
 - **대표 전화**: 010-9102-1600
 - **학생승마 담당**: 010-2029-3628
-- **주소**: 경기도 광주시 (상세 주소)
+- **주소**: 광주광역시 (네이버 지도: place/37202903)
+- **좌표**: 위도 35.0889102, 경도 126.7723406
 - **영업시간**: 화~일 09:00-18:00 (월요일 휴무)
 - **계좌번호**: 신한은행 131-004-582547 (최성환)
+- **네이버 지도**: https://map.naver.com/p/entry/place/37202903
 
 ---
 
@@ -477,3 +479,51 @@ MIT License - 자유롭게 사용, 수정, 배포 가능
 ---
 
 *Last Updated: 2026-01-04*
+
+---
+
+## 🌐 라이브 데모
+
+웹사이트를 직접 체험해보세요!
+
+- **메인 페이지**: [index.html](./index.html)
+- **대시보드**: [dashboard.html](./dashboard.html)
+
+### 빠른 시작
+
+```bash
+# HTTP 서버 실행 (Python)
+python -m http.server 8000
+
+# 또는 Node.js
+npx serve
+
+# 브라우저에서 접속
+open http://localhost:8000
+```
+
+---
+
+## 🤝 기여하기
+
+프로젝트 개선에 참여해주세요!
+
+1. Fork this repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'feat: Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+---
+
+## 📜 변경 이력
+
+### v1.0.0 (2026-01-04)
+- ✨ 초기 릴리스
+- 🏠 메인 페이지 구현
+- 📊 4가지 역할별 대시보드
+- 🎨 iOS 스타일 디자인 시스템
+- 📱 완전 반응형 레이아웃
+- 🔔 노쇼 방지 시스템
+- ⚡ 긴급 슬롯 알림
+- 🎓 호스피아 연동 준비
